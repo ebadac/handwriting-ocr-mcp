@@ -20,11 +20,32 @@ def install_uv() -> str:
         return uv
 
     print("uv가 설치되어 있지 않습니다. 설치합니다...")
-    if platform.system() == "Windows":
-        run(["powershell", "-ExecutionPolicy", "ByPass", "-c",
-             "irm https://astral.sh/uv/install.ps1 | iex"])
-    else:
-        run(["sh", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
+    try:
+        # macOS의 경우 brew 우선 시도
+        if platform.system() == "Darwin" and shutil.which("brew"):
+            try:
+                print("Homebrew로 uv 설치를 시도합니다...")
+                run(["brew", "install", "uv"])
+                uv = shutil.which("uv")
+                if uv:
+                    print("Homebrew로 uv 설치 완료")
+                    return uv
+            except subprocess.CalledProcessError:
+                print("Homebrew 설치 실패. 공식 스크립트로 재시도합니다.")
+
+        if platform.system() == "Windows":
+            run(["powershell", "-ExecutionPolicy", "ByPass", "-c",
+                 "irm https://astral.sh/uv/install.ps1 | iex"])
+        else:
+            # 타임아웃 설정 추가: 연결 10초, 전체 300초
+            run(["sh", "-c", "curl -LsSf --connect-timeout 10 --max-time 300 https://astral.sh/uv/install.sh | sh"])
+    except (subprocess.CalledProcessError, KeyboardInterrupt):
+        print("\n\n!!! 공식 설치 스크립트 실행 중 오류가 발생했습니다 (네트워크 불안정 등).")
+        print("pip를 통한 대체 설치를 시도합니다...")
+        try:
+            run([sys.executable, "-m", "pip", "install", "uv"])
+        except subprocess.CalledProcessError:
+            print("pip 설치도 실패했습니다.")
 
     # 설치 후 PATH에 추가 (현재 프로세스용)
     local_bin = os.path.join(os.path.expanduser("~"), ".local", "bin")
@@ -38,7 +59,12 @@ def install_uv() -> str:
 
     uv = shutil.which("uv")
     if not uv:
-        print("ERROR: uv 설치에 실패했습니다. https://docs.astral.sh/uv/ 에서 수동 설치하세요.")
+        # pip로 설치되었을 수도 있으므로 sys.executable 기반 bin 확인 등은 복잡하니 생략하고
+        # PATH에 없을 경우 수동 설치 안내
+        print("ERROR: uv 설치에 실패했습니다. 다음 방법들을 시도해보세요:")
+        print("  1. 네트워크 연결 확인")
+        print("  2. pip install uv (수동 실행)")
+        print("  3. https://docs.astral.sh/uv/ 에서 바이너리 직접 다운로드")
         sys.exit(1)
 
     print("uv 설치 완료")
