@@ -22,13 +22,13 @@ uv sync
 uv sync --extra dev --extra tesseract
 
 # MCP 서버 실행
-fastmcp run src/handwriting_ocr_mcp/server.py:mcp
+uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 
 # 테스트 실행
-pytest tests/
+uv run python -m pytest tests/
 
 # 린트
-ruff check src/ tests/
+uv run ruff check src/ tests/
 ```
 
 ## Architecture

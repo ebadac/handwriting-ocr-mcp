@@ -138,7 +138,7 @@ def main() -> None:
 
     if ok:
         print("\n=== 설치 완료 ===")
-        print("\n서버 실행: fastmcp run src/handwriting_ocr_mcp/server.py:mcp")
+        print("\n서버 실행: uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp")
     else:
         print("\n=== 설치 완료 (테스트 실패 항목이 있습니다) ===")
 

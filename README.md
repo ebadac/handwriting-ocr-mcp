@@ -58,7 +58,7 @@ GOOGLE_API_KEY=your-api-key-here
 ### MCP 서버 실행
 
 ```bash
-fastmcp run src/handwriting_ocr_mcp/server.py:mcp
+uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 ```
 
 ### Claude Desktop에서 사용
@@ -69,8 +69,8 @@ fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 {
   "mcpServers": {
     "handwriting-ocr-mcp": {
-      "command": "fastmcp",
-      "args": ["run", "/absolute/path/to/handwriting-ocr-mcp/src/handwriting_ocr_mcp/server.py:mcp"],
+      "command": "uv",
+      "args": ["run", "--project", "/absolute/path/to/handwriting-ocr-mcp", "fastmcp", "run", "src/handwriting_ocr_mcp/server.py:mcp"],
       "env": {
         "GOOGLE_API_KEY": "your-api-key-here"
       }
@@ -117,8 +117,8 @@ fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 uv sync --extra dev --extra tesseract
 
 # 테스트 실행
-pytest tests/
+uv run python -m pytest tests/
 
 # 린트
-ruff check src/ tests/
+uv run ruff check src/ tests/
 ```
