@@ -42,7 +42,31 @@ def install_uv() -> str:
     return uv
 
 
+def check_venv() -> None:
+    """venv의 Python 경로가 현재 디렉토리와 일치하는지 확인하고, 불일치 시 재생성한다."""
+    venv_dir = os.path.join(os.getcwd(), ".venv")
+    if not os.path.isdir(venv_dir):
+        return
+
+    if platform.system() == "Windows":
+        python_path = os.path.join(venv_dir, "Scripts", "python.exe")
+    else:
+        python_path = os.path.join(venv_dir, "bin", "python3")
+
+    if not os.path.exists(python_path):
+        return
+
+    real_python = os.path.realpath(python_path)
+    if os.path.exists(real_python):
+        return
+
+    print("기존 .venv의 Python 경로가 유효하지 않습니다. venv를 재생성합니다...")
+    shutil.rmtree(venv_dir)
+    print(".venv 삭제 완료")
+
+
 def sync_dependencies(uv: str) -> None:
+    check_venv()
     print("\n의존성을 설치합니다...")
     run([uv, "sync", "--extra", "dev", "--extra", "tesseract"])
     print("의존성 설치 완료")
