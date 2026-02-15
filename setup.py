@@ -94,7 +94,7 @@ def check_tesseract() -> None:
 
 def run_tests(uv: str) -> bool:
     print("\n테스트를 실행합니다...")
-    result = run([uv, "run", "pytest", "tests/", "-q"], check=False)
+    result = run([uv, "run", "python", "-m", "pytest", "tests/", "-q"], check=False)
     return result.returncode == 0
 
 
