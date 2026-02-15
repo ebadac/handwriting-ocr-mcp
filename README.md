@@ -9,41 +9,40 @@ Google Cloud Vision API를 주 엔진으로, Tesseract를 폴백으로 지원합
 - [uv](https://docs.astral.sh/uv/) (패키지 매니저)
 - Google Cloud Vision API 키 (선택) 또는 Tesseract OCR 바이너리 (폴백)
 
-## 설치
+## 빠른 설치
+
+설치 스크립트가 uv, 의존성, .env 파일, Tesseract 설치를 자동으로 처리합니다.
 
 ```bash
 git clone git@github.com:ebadac/handwriting-ocr-mcp.git
 cd handwriting-ocr-mcp
-uv sync
+python3 setup.py
 ```
 
-Tesseract 폴백을 사용하려면 추가 의존성을 설치합니다:
+Windows:
+
+```powershell
+git clone git@github.com:ebadac/handwriting-ocr-mcp.git
+cd handwriting-ocr-mcp
+python setup.py
+```
+
+## 수동 설치
 
 ```bash
 uv sync --extra tesseract
+cp .env.example .env
 ```
 
 ### Tesseract 바이너리 설치 (폴백 사용 시)
 
-macOS:
-
-```bash
-brew install tesseract tesseract-lang
-```
-
-Ubuntu/Debian:
-
-```bash
-sudo apt install tesseract-ocr tesseract-ocr-kor
-```
+| OS | 명령어 |
+|----|--------|
+| macOS | `brew install tesseract tesseract-lang` |
+| Ubuntu/Debian | `sudo apt install tesseract-ocr tesseract-ocr-kor` |
+| Windows | [UB-Mannheim 설치 프로그램](https://github.com/UB-Mannheim/tesseract/wiki) 다운로드 후 PATH에 추가 |
 
 ## 설정
-
-`.env.example`을 복사하여 `.env` 파일을 생성합니다:
-
-```bash
-cp .env.example .env
-```
 
 `.env` 파일에 Google Cloud Vision API 키를 설정합니다:
 
