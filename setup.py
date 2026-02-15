@@ -74,6 +74,10 @@ def check_tesseract() -> None:
     else:
         hint = "OS에 맞는 방법으로 Tesseract를 설치하세요"
 
+    if not sys.stdin.isatty():
+        print(f"Tesseract 수동 설치가 필요합니다: {hint}")
+        return
+
     answer = input(f"Tesseract를 설치할까요? ({hint}) (y/N) ").strip().lower()
     if answer == "y":
         if system == "Darwin":
