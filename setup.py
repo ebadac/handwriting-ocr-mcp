@@ -8,9 +8,9 @@ import subprocess
 import sys
 
 
-def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess[str]:
+def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
     print(f"  > {' '.join(cmd)}")
-    return subprocess.run(cmd, check=check)
+    return subprocess.run(cmd, check=check, text=True)
 
 
 def install_uv() -> str:
@@ -26,12 +26,15 @@ def install_uv() -> str:
     else:
         run(["sh", "-c", "curl -LsSf https://astral.sh/uv/install.sh | sh"])
 
-    # 설치 후 PATH에 추가
+    # 설치 후 PATH에 추가 (현재 프로세스용)
     local_bin = os.path.join(os.path.expanduser("~"), ".local", "bin")
     cargo_bin = os.path.join(os.path.expanduser("~"), ".cargo", "bin")
+    
+    path_modified = False
     for p in [local_bin, cargo_bin]:
         if os.path.isdir(p) and p not in os.environ.get("PATH", ""):
             os.environ["PATH"] = p + os.pathsep + os.environ.get("PATH", "")
+            path_modified = True
 
     uv = shutil.which("uv")
     if not uv:
@@ -39,6 +42,9 @@ def install_uv() -> str:
         sys.exit(1)
 
     print("uv 설치 완료")
+    if path_modified:
+        print(f"NOTE: 'uv'가 {os.path.dirname(uv)}에 설치되었습니다. 터미널을 재시작하거나 PATH에 추가해주세요.")
+        
     return uv
 
 
@@ -105,19 +111,32 @@ def check_tesseract() -> None:
     answer = input(f"Tesseract를 설치할까요? ({hint}) (y/N) ").strip().lower()
     if answer == "y":
         if system == "Darwin":
+            if not shutil.which("brew"):
+                print("Error: Homebrew가 설치되어 있지 않습니다. https://brew.sh/ 에서 설치하세요.")
+                return
             run(["brew", "install", "tesseract", "tesseract-lang"])
         elif system == "Linux":
+            if not shutil.which("apt"):
+                 print(f"Error: apt 패키지 관리자를 찾을 수 없습니다. 수동 설치가 필요합니다: {hint}")
+                 return
+            run(["sudo", "apt", "update"])
             run(["sudo", "apt", "install", "-y", "tesseract-ocr", "tesseract-ocr-kor"])
         elif system == "Windows":
             print(f"Windows에서는 수동 설치가 필요합니다: {hint}")
             return
-        print("Tesseract 설치 완료")
+        
+        # 설치 확인
+        if shutil.which("tesseract"):
+             print("Tesseract 설치 완료")
+        else:
+             print("Warning: Tesseract 설치를 시도했으나 PATH에서 찾을 수 없습니다.")
     else:
         print("Tesseract 설치를 건너뜁니다. Google Vision API 키가 필요합니다.")
 
 
 def run_tests(uv: str) -> bool:
     print("\n테스트를 실행합니다...")
+    # uv run은 가상환경 내에서 실행하므로 python -m pytest 사용
     result = run([uv, "run", "python", "-m", "pytest", "tests/", "-q"], check=False)
     return result.returncode == 0
 
