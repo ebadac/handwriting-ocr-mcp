@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
-"""handwriting-ocr-mcp 설치 스크립트 (macOS/Linux/Windows)"""
+"""handwriting-ocr-mcp installation script (macOS/Linux/Windows)"""
 
+import json
 import os
 import platform
 import shutil
 import subprocess
 import sys
+from typing import Any, Dict, cast
 
 
 def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
@@ -14,40 +16,40 @@ def run(cmd: list[str], check: bool = True) -> subprocess.CompletedProcess:
 
 
 def install_uv() -> str:
-    """uv를 설치하고 경로를 반환한다."""
+    """Installs uv and returns its path."""
     uv = shutil.which("uv")
     if uv:
         return uv
 
-    print("uv가 설치되어 있지 않습니다. 설치합니다...")
+    print("uv is not installed. Installing...")
     try:
-        # macOS의 경우 brew 우선 시도
+        # Try brew first on macOS
         if platform.system() == "Darwin" and shutil.which("brew"):
             try:
-                print("Homebrew로 uv 설치를 시도합니다...")
+                print("Attempting to install uv via Homebrew...")
                 run(["brew", "install", "uv"])
                 uv = shutil.which("uv")
                 if uv:
-                    print("Homebrew로 uv 설치 완료")
+                    print("uv installation via Homebrew complete")
                     return uv
             except subprocess.CalledProcessError:
-                print("Homebrew 설치 실패. 공식 스크립트로 재시도합니다.")
+                print("Homebrew installation failed. Retrying with official script.")
 
         if platform.system() == "Windows":
             run(["powershell", "-ExecutionPolicy", "ByPass", "-c",
                  "irm https://astral.sh/uv/install.ps1 | iex"])
         else:
-            # 타임아웃 설정 추가: 연결 10초, 전체 300초
+            # Add timeout settings: connect 10s, max time 300s
             run(["sh", "-c", "curl -LsSf --connect-timeout 10 --max-time 300 https://astral.sh/uv/install.sh | sh"])
     except (subprocess.CalledProcessError, KeyboardInterrupt):
-        print("\n\n!!! 공식 설치 스크립트 실행 중 오류가 발생했습니다 (네트워크 불안정 등).")
-        print("pip를 통한 대체 설치를 시도합니다...")
+        print("\n\n!!! Error occurred during official installation script execution (network instability, etc.).")
+        print("Attempting alternative installation via pip...")
         try:
             run([sys.executable, "-m", "pip", "install", "uv"])
         except subprocess.CalledProcessError:
-            print("pip 설치도 실패했습니다.")
+            print("pip installation also failed.")
 
-    # 설치 후 PATH에 추가 (현재 프로세스용)
+    # Add to PATH after installation (for current process)
     local_bin = os.path.join(os.path.expanduser("~"), ".local", "bin")
     cargo_bin = os.path.join(os.path.expanduser("~"), ".cargo", "bin")
     
@@ -59,23 +61,25 @@ def install_uv() -> str:
 
     uv = shutil.which("uv")
     if not uv:
-        # pip로 설치되었을 수도 있으므로 sys.executable 기반 bin 확인 등은 복잡하니 생략하고
-        # PATH에 없을 경우 수동 설치 안내
-        print("ERROR: uv 설치에 실패했습니다. 다음 방법들을 시도해보세요:")
-        print("  1. 네트워크 연결 확인")
-        print("  2. pip install uv (수동 실행)")
-        print("  3. https://docs.astral.sh/uv/ 에서 바이너리 직접 다운로드")
+        # Since it might have been installed via pip, complex checks like sys.executable based bin are skipped
+        # If not in PATH, guide for manual installation
+        print("ERROR: Failed to install uv. Please try the following methods:")
+        print("  1. Check network connection")
+        print("  2. pip install uv (manual execution)")
+        print("  3. Download binary directly from https://docs.astral.sh/uv/")
         sys.exit(1)
 
-    print("uv 설치 완료")
+    assert uv is not None
+    print("uv installation complete")
     if path_modified:
-        print(f"NOTE: 'uv'가 {os.path.dirname(uv)}에 설치되었습니다. 터미널을 재시작하거나 PATH에 추가해주세요.")
-        
+        print(f"NOTE: 'uv' installed at {os.path.dirname(uv)}. Please restart terminal or add to PATH.")
+
+    assert uv is not None
     return uv
 
 
 def check_venv() -> None:
-    """venv의 Python 경로가 현재 디렉토리와 일치하는지 확인하고, 불일치 시 재생성한다."""
+    """Checks if venv Python path matches current directory, recreates if mismatch."""
     venv_dir = os.path.join(os.getcwd(), ".venv")
     if not os.path.isdir(venv_dir):
         return
@@ -92,23 +96,23 @@ def check_venv() -> None:
     if os.path.exists(real_python):
         return
 
-    print("기존 .venv의 Python 경로가 유효하지 않습니다. venv를 재생성합니다...")
+    print("Existing .venv Python path is invalid. Recreating venv...")
     shutil.rmtree(venv_dir)
-    print(".venv 삭제 완료")
+    print(".venv deletion complete")
 
 
 def sync_dependencies(uv: str) -> None:
     check_venv()
-    print("\n의존성을 설치합니다...")
+    print("\nInstalling dependencies...")
     run([uv, "sync", "--extra", "dev", "--extra", "tesseract"])
-    print("의존성 설치 완료")
+    print("Dependencies installation complete")
 
 
 def create_env_file() -> None:
     if not os.path.exists(".env"):
         shutil.copy(".env.example", ".env")
-        print("\n.env 파일이 생성되었습니다.")
-        print("Google Vision API를 사용하려면 .env 파일에 GOOGLE_API_KEY를 설정하세요.")
+        print("\n.env file created.")
+        print("To use Google Vision API, set GOOGLE_API_KEY in .env file.")
 
 
 def check_tesseract() -> None:
@@ -118,7 +122,7 @@ def check_tesseract() -> None:
         print(f"Tesseract: {version}")
         return
 
-    print("\nTesseract OCR이 설치되어 있지 않습니다.")
+    print("\nTesseract OCR is not installed.")
     system = platform.system()
 
     if system == "Darwin":
@@ -126,49 +130,188 @@ def check_tesseract() -> None:
     elif system == "Linux":
         hint = "sudo apt install tesseract-ocr tesseract-ocr-kor"
     elif system == "Windows":
-        hint = "https://github.com/UB-Mannheim/tesseract/wiki 에서 설치 후 PATH에 추가"
+        hint = "Install from https://github.com/UB-Mannheim/tesseract/wiki and add to PATH"
     else:
-        hint = "OS에 맞는 방법으로 Tesseract를 설치하세요"
+        hint = "Install Tesseract using method appropriate for your OS"
 
     if not sys.stdin.isatty():
-        print(f"Tesseract 수동 설치가 필요합니다: {hint}")
+        print(f"Manual Tesseract installation required: {hint}")
         return
 
-    answer = input(f"Tesseract를 설치할까요? ({hint}) (y/N) ").strip().lower()
+    answer = input(f"Install Tesseract? ({hint}) (y/N) ").strip().lower()
     if answer == "y":
         if system == "Darwin":
             if not shutil.which("brew"):
-                print("Error: Homebrew가 설치되어 있지 않습니다. https://brew.sh/ 에서 설치하세요.")
+                print("Error: Homebrew not installed. Install from https://brew.sh/.")
                 return
             run(["brew", "install", "tesseract", "tesseract-lang"])
         elif system == "Linux":
             if not shutil.which("apt"):
-                 print(f"Error: apt 패키지 관리자를 찾을 수 없습니다. 수동 설치가 필요합니다: {hint}")
+                 print(f"Error: apt package manager not found. Manual installation required: {hint}")
                  return
             run(["sudo", "apt", "update"])
             run(["sudo", "apt", "install", "-y", "tesseract-ocr", "tesseract-ocr-kor"])
         elif system == "Windows":
-            print(f"Windows에서는 수동 설치가 필요합니다: {hint}")
+            print(f"Manual installation required on Windows: {hint}")
             return
         
-        # 설치 확인
+        # Verify installation
         if shutil.which("tesseract"):
-             print("Tesseract 설치 완료")
+             print("Tesseract installation complete")
         else:
-             print("Warning: Tesseract 설치를 시도했으나 PATH에서 찾을 수 없습니다.")
+             print("Warning: Attempted Tesseract installation but could not find in PATH.")
     else:
-        print("Tesseract 설치를 건너뜁니다. Google Vision API 키가 필요합니다.")
+        print("Skipping Tesseract installation. Google Vision API key is required.")
+
+
+def _get_claude_config_path() -> str:
+    """Returns Claude Desktop config file path by OS."""
+    system = platform.system()
+    if system == "Darwin":
+        return os.path.join(
+            os.path.expanduser("~"),
+            "Library", "Application Support", "Claude",
+            "claude_desktop_config.json",
+        )
+    elif system == "Windows":
+        appdata = os.environ.get("APPDATA", "")
+        if not appdata:
+            appdata = os.path.join(os.path.expanduser("~"), "AppData", "Roaming")
+        return os.path.join(appdata, "Claude", "claude_desktop_config.json")
+    else:
+        config_home = os.environ.get(
+            "XDG_CONFIG_HOME",
+            os.path.join(os.path.expanduser("~"), ".config"),
+        )
+        return os.path.join(config_home, "Claude", "claude_desktop_config.json")
+
+
+def _read_env_value(key: str) -> str:
+    """Reads and returns value for specific key from .env file."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    if not os.path.exists(env_path):
+        return ""
+    with open(env_path) as f:
+        for line in f:
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            if "=" in line:
+                k, _, v = line.partition("=")
+                if k.strip() == key:
+                    return v.strip().strip('"').strip("'")
+    return ""
+
+
+def configure_claude_desktop(uv: str) -> None:
+    """Registers MCP server to Claude Desktop config file."""
+    config_path = _get_claude_config_path()
+    project_root = os.path.dirname(os.path.abspath(__file__))
+
+    config_dir = os.path.dirname(config_path)
+    if not os.path.isdir(config_dir):
+        print(f"\nClaude Desktop config directory does not exist: {config_dir}")
+        print("Check if Claude Desktop is installed.")
+        return
+
+    # Read existing config
+    config: Dict[str, Any] = {}
+    if os.path.exists(config_path):
+        with open(config_path) as f:
+            try:
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    config = cast(Dict[str, Any], loaded)
+                else:
+                    config = {}
+            except json.JSONDecodeError:
+                print(f"Warning: {config_path} file is not valid JSON.")
+                if sys.stdin.isatty():
+                    answer = input("Overwrite existing file? (y/N) ").strip().lower()
+                    if answer != "y":
+                        print("Skipping Claude Desktop configuration.")
+                        return
+                else:
+                    print("Skipping Claude Desktop configuration.")
+                    return
+                config = {}
+
+    # Configure server entry
+    server_path = os.path.join(project_root, "src", "handwriting_ocr_mcp", "server.py")
+    server_entry: dict = {
+        "command": uv,
+        "args": [
+            "run",
+            "--project",
+            project_root,
+            "fastmcp",
+            "run",
+            f"{server_path}:mcp",
+        ],
+    }
+
+    # Handle GOOGLE_API_KEY
+    google_api_key = _read_env_value("GOOGLE_API_KEY")
+    existing_entry = config.get("mcpServers", {}).get("handwriting-ocr-mcp", {})
+    existing_key = existing_entry.get("env", {}).get("GOOGLE_API_KEY", "")
+
+    env_section: dict = {}
+    if existing_key and existing_key != "your-api-key-here":
+        env_section["GOOGLE_API_KEY"] = existing_key
+    elif google_api_key:
+        env_section["GOOGLE_API_KEY"] = google_api_key
+
+    if env_section:
+        server_entry["env"] = env_section
+
+    # Check if change is needed
+    if "mcpServers" not in config:
+        config["mcpServers"] = {}
+
+    if config["mcpServers"].get("handwriting-ocr-mcp") == server_entry:
+        print(f"\nClaude Desktop config is already up to date: {config_path}")
+        return
+
+    # User confirmation
+    print(f"\nUpdating Claude Desktop config file: {config_path}")
+    print(f"  command: {uv}")
+    print(f"  project: {project_root}")
+    if env_section.get("GOOGLE_API_KEY"):
+        key_val = env_section["GOOGLE_API_KEY"]
+        masked = key_val[:4] + "..." if len(key_val) > 4 else "***"
+        print(f"  GOOGLE_API_KEY: {masked}")
+
+    if sys.stdin.isatty():
+        if "handwriting-ocr-mcp" in config.get("mcpServers", {}):
+            answer = input("Update existing handwriting-ocr-mcp config? (Y/n) ").strip().lower()
+        else:
+            answer = input("Add handwriting-ocr-mcp config? (Y/n) ").strip().lower()
+        if answer == "n":
+            print("Skipping Claude Desktop configuration.")
+            return
+
+    # Save config
+    config["mcpServers"]["handwriting-ocr-mcp"] = server_entry
+
+    with open(config_path, "w") as f:
+        json.dump(config, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+
+    print("Claude Desktop configuration complete")
+    if not env_section.get("GOOGLE_API_KEY"):
+        print("NOTE: GOOGLE_API_KEY is not set. Set it in .env file and restart Claude Desktop.")
+    print("NOTE: Restart Claude Desktop to apply settings.")
 
 
 def run_tests(uv: str) -> bool:
-    print("\n테스트를 실행합니다...")
-    # uv run은 가상환경 내에서 실행하므로 python -m pytest 사용
+    print("\nRunning tests...")
+    # uv run executes within venv, so use python -m pytest
     result = run([uv, "run", "python", "-m", "pytest", "tests/", "-q"], check=False)
     return result.returncode == 0
 
 
 def main() -> None:
-    print("=== handwriting-ocr-mcp 설치 ===\n")
+    print("=== handwriting-ocr-mcp installation ===\n")
 
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
@@ -178,14 +321,15 @@ def main() -> None:
     sync_dependencies(uv)
     create_env_file()
     check_tesseract()
+    configure_claude_desktop(uv)
 
     ok = run_tests(uv)
 
     if ok:
-        print("\n=== 설치 완료 ===")
-        print("\n서버 실행: uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp")
+        print("\n=== Installation Complete ===")
+        print("\nRun server: uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp")
     else:
-        print("\n=== 설치 완료 (테스트 실패 항목이 있습니다) ===")
+        print("\n=== Installation Complete (with test failures) ===")
 
 
 if __name__ == "__main__":

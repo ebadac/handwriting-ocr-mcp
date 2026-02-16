@@ -5,6 +5,8 @@ try:
 except ImportError:
     pytesseract = None  # type: ignore[assignment]
 
+import io
+
 from PIL import Image
 
 
@@ -31,10 +33,21 @@ class TesseractEngine:
                 "`pip install 'handwriting-ocr-mcp[tesseract]'`로 설치하세요."
             )
 
-    def extract_text(self, image_path: str, lang: str = "ko") -> str:
+    def extract_text(
+        self,
+        image_path: str | None = None,
+        lang: str = "ko",
+        *,
+        image_data: bytes | None = None,
+    ) -> str:
         """Tesseract OCR로 이미지에서 텍스트를 추출합니다."""
         tess_lang = LANG_MAP.get(lang, lang)
-        image = Image.open(image_path)
+        if image_data is not None:
+            image = Image.open(io.BytesIO(image_data))
+        elif image_path is not None:
+            image = Image.open(image_path)
+        else:
+            raise ValueError("image_path 또는 image_data 중 하나를 제공해야 합니다.")
         text: str = pytesseract.image_to_string(image, lang=tess_lang)
         return text.strip()
 

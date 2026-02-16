@@ -64,6 +64,7 @@ uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 ### Claude Desktop에서 사용
 
 `claude_desktop_config.json`에 다음을 추가합니다:
+> setup.py에 의해 자동으로 설정됩니다.
 
 ```json
 {
@@ -87,12 +88,31 @@ uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 
 | 파라미터 | 타입 | 기본값 | 설명 |
 |---------|------|-------|------|
-| `image_path` | `str` | (필수) | OCR을 수행할 이미지 파일 경로 |
+| `image_path` | `str \| None` | `None` | OCR을 수행할 이미지 파일 경로 (image_data와 둘 중 하나 필수) |
+| `image_data` | `str \| None` | `None` | base64 인코딩된 이미지 데이터 (image_path와 둘 중 하나 필수) |
 | `lang` | `str` | `"ko"` | OCR 언어 코드 |
 
 #### `list_supported_languages`
 
 지원하는 OCR 언어 목록을 반환합니다. 파라미터 없음.
+
+### 사용 예시
+
+#### 파일 경로로 호출
+
+```python
+# MCP 클라이언트에서
+result = ocr_image(image_path="/path/to/business_card.jpg", lang="ko")
+```
+
+#### Claude Desktop에서 사용
+
+Claude Desktop에서 이미지를 업로드한 경우:
+1. **권장**: 이미지를 로컬에 저장 후 절대 경로를 MCP 도구에 전달
+2. **대안**: Claude가 이미지를 base64로 인코딩하여 전달 (토큰 소모 주의)
+
+**중요**: MCP 서버는 Claude가 업로드한 임시 파일에 직접 접근할 수 없습니다.
+파일을 특정 위치에 저장하고 그 경로를 제공해야 합니다.
 
 ### 지원 언어
 

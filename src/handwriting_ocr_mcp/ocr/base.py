@@ -5,8 +5,17 @@ from typing import Protocol
 
 
 class OcrEngine(Protocol):
-    def extract_text(self, image_path: str, lang: str = "ko") -> str:
-        """이미지에서 텍스트를 추출합니다."""
+    def extract_text(
+        self,
+        image_path: str | None = None,
+        lang: str = "ko",
+        *,
+        image_data: bytes | None = None,
+    ) -> str:
+        """이미지에서 텍스트를 추출합니다.
+
+        image_path 또는 image_data 중 하나를 제공해야 합니다.
+        """
         ...
 
     def supported_languages(self) -> list[str]:

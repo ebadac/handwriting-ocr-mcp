@@ -18,10 +18,21 @@ class GoogleVisionEngine:
             client_options={"api_key": api_key},
         )
 
-    def extract_text(self, image_path: str, lang: str = "ko") -> str:
+    def extract_text(
+        self,
+        image_path: str | None = None,
+        lang: str = "ko",
+        *,
+        image_data: bytes | None = None,
+    ) -> str:
         """Google Cloud Vision API로 이미지에서 텍스트를 추출합니다."""
-        with open(image_path, "rb") as f:
-            content = f.read()
+        if image_data is not None:
+            content = image_data
+        elif image_path is not None:
+            with open(image_path, "rb") as f:
+                content = f.read()
+        else:
+            raise ValueError("image_path 또는 image_data 중 하나를 제공해야 합니다.")
 
         image = vision.Image(content=content)
         image_context = vision.ImageContext(
