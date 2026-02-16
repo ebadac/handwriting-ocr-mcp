@@ -26,26 +26,26 @@ class GoogleVisionEngine:
             )
         else:
             raise RuntimeError(
-                "Google Cloud Vision 인증 정보가 설정되지 않았습니다.\n"
-                "GOOGLE_APPLICATION_CREDENTIALS(서비스 계정 키 파일 경로) 또는 "
-                "GOOGLE_API_KEY 환경변수를 설정해주세요."
+                "Google Cloud Vision credentials are not set.\n"
+                "Please set GOOGLE_APPLICATION_CREDENTIALS (path to service account key file) "
+                "or GOOGLE_API_KEY environment variable."
             )
 
     def extract_text(
         self,
         image_path: str | None = None,
-        lang: str = "ko",
+        lang: str = "en",
         *,
         image_data: bytes | None = None,
     ) -> str:
-        """Google Cloud Vision API로 이미지에서 텍스트를 추출합니다."""
+        """Extracts text from the image using Google Cloud Vision API."""
         if image_data is not None:
             content = image_data
         elif image_path is not None:
             with open(image_path, "rb") as f:
                 content = f.read()
         else:
-            raise ValueError("image_path 또는 image_data 중 하나를 제공해야 합니다.")
+            raise ValueError("Either image_path or image_data must be provided.")
 
         image = vision.Image(content=content)
         image_context = vision.ImageContext(
@@ -57,7 +57,7 @@ class GoogleVisionEngine:
         )
 
         if response.error.message:
-            raise RuntimeError(f"Vision API 오류: {response.error.message}")
+            raise RuntimeError(f"Vision API Error: {response.error.message}")
 
         if not response.full_text_annotation:
             return ""

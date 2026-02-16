@@ -8,26 +8,26 @@ class OcrEngine(Protocol):
     def extract_text(
         self,
         image_path: str | None = None,
-        lang: str = "ko",
+        lang: str = "en",
         *,
         image_data: bytes | None = None,
     ) -> str:
-        """이미지에서 텍스트를 추출합니다.
+        """Extracts text from the image.
 
-        image_path 또는 image_data 중 하나를 제공해야 합니다.
+        Either image_path or image_data must be provided.
         """
         ...
 
     def supported_languages(self) -> list[str]:
-        """지원하는 언어 목록을 반환합니다."""
+        """Returns the list of supported languages."""
         ...
 
 
 def create_engine() -> OcrEngine:
-    """환경변수 기반으로 OCR 엔진을 선택합니다.
+    """Selects an OCR engine based on environment variables.
 
-    GOOGLE_APPLICATION_CREDENTIALS 또는 GOOGLE_API_KEY가 설정되어 있으면 Google Vision,
-    아니면 Tesseract를 사용합니다.
+    If GOOGLE_APPLICATION_CREDENTIALS or GOOGLE_API_KEY is set, Google Vision is used.
+    Otherwise, Tesseract is used.
     """
     if os.environ.get("GOOGLE_APPLICATION_CREDENTIALS") or os.environ.get("GOOGLE_API_KEY"):
         from handwriting_ocr_mcp.ocr.google_vision import GoogleVisionEngine

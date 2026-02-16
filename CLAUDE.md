@@ -4,8 +4,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-**handwriting-ocr-mcp** — Python + FastMCP 기반 MCP 서버. 손글씨 이미지를 OCR로 텍스트 변환하는 도구를 제공한다.
-Google Vision API를 주 엔진으로, Tesseract를 폴백으로 지원.
+**handwriting-ocr-mcp** — MCP server based on Python + FastMCP. Provides tools to convert handwriting images to text using OCR.
+Supports Google Vision API as the primary engine and Tesseract as a fallback.
 
 ## Repository
 
@@ -15,29 +15,29 @@ Google Vision API를 주 엔진으로, Tesseract를 폴백으로 지원.
 ## Build & Run
 
 ```bash
-# 의존성 설치
+# Install dependencies
 uv sync
 
-# 개발 의존성 포함 설치
+# Install with dev dependencies
 uv sync --extra dev --extra tesseract
 
-# MCP 서버 실행
+# Run MCP server
 uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 
-# 테스트 실행
+# Run tests
 uv run python -m pytest tests/
 
-# 린트
+# Lint
 uv run ruff check src/ tests/
 ```
 
 ## Architecture
 
-- `src/handwriting_ocr_mcp/server.py` — FastMCP 서버, MCP 도구 등록
-- `src/handwriting_ocr_mcp/ocr/base.py` — OcrEngine Protocol + 팩토리 함수
-- `src/handwriting_ocr_mcp/ocr/google_vision.py` — Google Cloud Vision 구현
-- `src/handwriting_ocr_mcp/ocr/tesseract.py` — Tesseract 폴백 구현
+- `src/handwriting_ocr_mcp/server.py` — FastMCP server, MCP tool registration
+- `src/handwriting_ocr_mcp/ocr/base.py` — OcrEngine Protocol + Factory function
+- `src/handwriting_ocr_mcp/ocr/google_vision.py` — Google Cloud Vision implementation
+- `src/handwriting_ocr_mcp/ocr/tesseract.py` — Tesseract fallback implementation
 
 ## Environment Variables
 
-- `GOOGLE_API_KEY` — Google Cloud Vision API 키 (설정 시 Google Vision 사용, 미설정 시 Tesseract 폴백)
+- `GOOGLE_API_KEY` — Google Cloud Vision API key (Uses Google Vision if set, falls back to Tesseract if not set)

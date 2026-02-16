@@ -210,6 +210,65 @@ def configure_credentials() -> None:
     print(f"\nUpdated .env with GOOGLE_APPLICATION_CREDENTIALS=\"{use_path}\"")
 
 
+
+def configure_language() -> None:
+    """Configures default OCR language."""
+    print("\n--- Default Language Setup ---")
+    
+    current_lang = _read_env_value("OCR_DEFAULT_LANGUAGE")
+    if current_lang:
+        print(f"Current default language: {current_lang}")
+        if sys.stdin.isatty():
+            answer = input("Do you want to change it? (y/N) ").strip().lower()
+            if answer != "y":
+                return
+        else:
+            return
+
+    if not sys.stdin.isatty():
+        print("Skipping language setup (not a TTY). Defaulting to 'en' if not set.")
+        if not current_lang:
+            _update_env_key("OCR_DEFAULT_LANGUAGE", "en")
+        return
+
+    default_lang = "en"
+    print(f"Select default language code (e.g. en, ko, ja) [default: {default_lang}]")
+    lang = input(f"Language code: ").strip()
+    
+    if not lang:
+        lang = default_lang
+    
+    _update_env_key("OCR_DEFAULT_LANGUAGE", lang)
+    print(f"Default language set to: {lang}")
+
+
+def _update_env_key(key: str, value: str) -> None:
+    """Updates or adds a key-value pair in .env file."""
+    env_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
+    
+    lines = []
+    if os.path.exists(env_path):
+        with open(env_path, "r") as f:
+            lines = f.readlines()
+            
+    key_found = False
+    new_lines = []
+    for line in lines:
+        if line.strip().startswith(f"{key}="):
+             new_lines.append(f'{key}="{value}"\n')
+             key_found = True
+        else:
+            new_lines.append(line)
+    
+    if not key_found:
+        if new_lines and not new_lines[-1].endswith("\n"):
+            new_lines.append("\n")
+        new_lines.append(f'{key}="{value}"\n')
+
+    with open(env_path, "w") as f:
+        f.writelines(new_lines)
+
+
 def check_tesseract() -> None:
     if shutil.which("tesseract"):
         result = subprocess.run(["tesseract", "--version"], capture_output=True, text=True)
@@ -396,6 +455,7 @@ def main() -> None:
     sync_dependencies(uv)
     create_env_file()
     configure_credentials()
+    configure_language()
     check_tesseract()
     configure_claude_desktop(uv)
 

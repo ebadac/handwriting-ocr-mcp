@@ -31,14 +31,15 @@ def _get_engine() -> OcrEngine:
 )
 def ocr_image(
     image_path: str | None = None,
-    lang: str = "ko",
+    lang: str | None = None,
     image_data: str | None = None,
 ) -> str:
     """Extracts text from handwriting image.
 
     Args:
         image_path: Absolute path to the local image file to perform OCR on.
-        lang: Language code for OCR (e.g., 'ko' for Korean, 'en' for English). Defaults to 'ko'.
+        lang: Language code for OCR (e.g., 'ko' for Korean, 'en' for English).
+              Defaults to environment variable OCR_DEFAULT_LANGUAGE or 'en'.
         image_data: Base64 encoded string of the image data. Use this if the image is not stored locally.
 
     Returns:
@@ -47,6 +48,9 @@ def ocr_image(
     Raises:
         ValueError: If neither image_path nor image_data is provided.
     """
+    if lang is None:
+        lang = os.environ.get("OCR_DEFAULT_LANGUAGE", "en")
+
     engine = _get_engine()
     if image_data is not None:
         raw = base64.b64decode(image_data)

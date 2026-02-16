@@ -29,25 +29,25 @@ class TesseractEngine:
     def __init__(self) -> None:
         if pytesseract is None:
             raise RuntimeError(
-                "pytesseract가 설치되지 않았습니다. "
-                "`pip install 'handwriting-ocr-mcp[tesseract]'`로 설치하세요."
+                "pytesseract is not installed. "
+                "Install it with `pip install 'handwriting-ocr-mcp[tesseract]'`."
             )
 
     def extract_text(
         self,
         image_path: str | None = None,
-        lang: str = "ko",
+        lang: str = "en",
         *,
         image_data: bytes | None = None,
     ) -> str:
-        """Tesseract OCR로 이미지에서 텍스트를 추출합니다."""
+        """Extracts text from the image using Tesseract OCR."""
         tess_lang = LANG_MAP.get(lang, lang)
         if image_data is not None:
             image = Image.open(io.BytesIO(image_data))
         elif image_path is not None:
             image = Image.open(image_path)
         else:
-            raise ValueError("image_path 또는 image_data 중 하나를 제공해야 합니다.")
+            raise ValueError("Either image_path or image_data must be provided.")
         text: str = pytesseract.image_to_string(image, lang=tess_lang)
         return text.strip()
 

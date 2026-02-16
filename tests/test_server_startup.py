@@ -1,4 +1,4 @@
-"""MCP 서버가 임의의 cwd에서 정상 기동되는지 검증한다."""
+"""Verifies that the MCP server starts correctly from an arbitrary cwd."""
 
 from __future__ import annotations
 
@@ -18,8 +18,8 @@ UV = "uv"
 
 
 def _run_mcp_request(request: dict, cwd: str = "/") -> dict:
-    """MCP 서버에 JSON-RPC 요청을 보내고 응답을 반환한다."""
-    # stdin으로 JSON-RPC 요청을 보내고 stdout에서 응답을 받는다
+    """Sends a JSON-RPC request to the MCP server and returns the response."""
+    # Send JSON-RPC request to stdin and receive response from stdout
     input_line = json.dumps(request)
     result = subprocess.run(
         [
@@ -38,10 +38,10 @@ def _run_mcp_request(request: dict, cwd: str = "/") -> dict:
 
 
 class TestServerStartup:
-    """서버가 프로젝트 디렉토리가 아닌 곳에서도 기동되는지 확인."""
+    """Check if the server starts even from outside the project directory."""
 
     def test_server_starts_from_root_directory(self, tmp_path):
-        """cwd가 /tmp 일 때도 서버가 파일을 찾을 수 있는지 확인한다."""
+        """Checks if the server can find files even when cwd is /tmp."""
         result = subprocess.run(
             [
                 UV, "run",
@@ -53,15 +53,15 @@ class TestServerStartup:
             capture_output=True,
             text=True,
             timeout=10,
-            cwd=str(tmp_path),  # 프로젝트 밖의 임의 디렉토리
+            cwd=str(tmp_path),  # Arbitrary directory outside the project
         )
-        # "File not found" 에러가 없어야 한다
+        # Should not have "File not found" error
         assert "File not found" not in result.stderr, (
-            f"서버가 파일을 찾지 못함 (cwd={tmp_path}):\n{result.stderr}"
+            f"Server failed to find files (cwd={tmp_path}):\n{result.stderr}"
         )
 
     def test_server_starts_from_home_directory(self):
-        """cwd가 홈 디렉토리일 때도 서버가 기동되는지 확인한다."""
+        """Checks if the server starts when cwd is the home directory."""
         home = os.path.expanduser("~")
         result = subprocess.run(
             [
@@ -77,5 +77,5 @@ class TestServerStartup:
             cwd=home,
         )
         assert "File not found" not in result.stderr, (
-            f"서버가 파일을 찾지 못함 (cwd={home}):\n{result.stderr}"
+            f"Server failed to find files (cwd={home}):\n{result.stderr}"
         )

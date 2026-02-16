@@ -25,18 +25,18 @@ class TestTesseractEngine:
     @patch("handwriting_ocr_mcp.ocr.tesseract.pytesseract")
     @patch("handwriting_ocr_mcp.ocr.tesseract.Image")
     def test_extract_text(self, mock_image: MagicMock, mock_pytesseract: MagicMock) -> None:
-        mock_pytesseract.image_to_string.return_value = "안녕하세요\n"
+        mock_pytesseract.image_to_string.return_value = "Hello\n"
 
         from handwriting_ocr_mcp.ocr.tesseract import TesseractEngine
 
         engine = TesseractEngine()
-        result = engine.extract_text("/fake/path.png", lang="ko")
+        result = engine.extract_text("/fake/path.png", lang="en")
 
         mock_image.open.assert_called_once_with("/fake/path.png")
         mock_pytesseract.image_to_string.assert_called_once_with(
-            mock_image.open.return_value, lang="kor"
+            mock_image.open.return_value, lang="eng"
         )
-        assert result == "안녕하세요"
+        assert result == "Hello"
 
     @patch("handwriting_ocr_mcp.ocr.tesseract.pytesseract")
     def test_supported_languages(self, _mock: MagicMock) -> None:

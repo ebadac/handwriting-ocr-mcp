@@ -1,77 +1,77 @@
 # handwriting-ocr-mcp
 
-손글씨 이미지를 OCR로 텍스트 변환하는 MCP 서버입니다.
-Google Cloud Vision API를 주 엔진으로, Tesseract를 폴백으로 지원합니다.
+An MCP server that converts handwriting images to text using OCR.
+It supports Google Cloud Vision API as the primary engine and Tesseract as a fallback.
 
-## 요구사항
+## Requirements
 
-- Python 3.10 이상
-- [uv](https://docs.astral.sh/uv/) (패키지 매니저)
-- Google Cloud Vision API 키 (선택) 또는 Tesseract OCR 바이너리 (폴백)
-  - [Google Vision API 키 발급 가이드](docs/google_vision_setup.md)
+- Python 3.10 or higher
+- [uv](https://docs.astral.sh/uv/) (Package Manager)
+- Google Cloud Vision API key (Optional) or Tesseract OCR binary (Fallback)
+  - [Google Vision API Key Setup Guide](docs/google_vision_setup.md)
 
 
-## 빠른 설치
+## Quick Installation
 
-1. **설치 스크립트 실행**
+1. **Run Installation Script**
 
-   프로젝트 루트에서 다음 명령어를 실행하면, `uv` 설치부터 가상환경 구성, 의존성 설치, 그리고 **Google Cloud Credential 설정**까지 자동으로 진행됩니다.
+   Run the following command in the project root to automatically install `uv`, configure the virtual environment, install dependencies, and **set up Google Cloud Credentials**.
 
    ```bash
    python3 setup.py
    ```
 
-   > 스크립트 실행 중 Google Service Account JSON 키 파일의 경로를 묻습니다. 파일 경로를 입력하면 자동으로 프로젝트 내 `keys/` 디렉토리(git 무시됨)로 복사하고 `.env`를 설정해줍니다.
+   > During script execution, you will be asked for the path to your Google Service Account JSON key file. If provided, it will be automatically copied to the `keys/` directory (ignored by git) in the project, and `.env` will be configured.
 
-2. **OCR 테스트**
+2. **Test OCR**
 
-   설정이 완료되면 다음 스크립트로 동작을 확인할 수 있습니다.
+   Once configured, you can verify the operation with the following script:
 
    ```bash
    uv run scripts/verify_ocr.py
    ```
 
-3. **수동 설치 (옵션)**
+3. **Manual Installation (Optional)**
 
-   자동 설치 스크립트를 사용하지 않을 경우:
+   If you do not use the automatic installation script:
 
    ```bash
    uv sync --extra tesseract
    cp .env.example .env
-   # .env 파일에 GOOGLE_APPLICATION_CREDENTIALS 설정
+   # Set GOOGLE_APPLICATION_CREDENTIALS in .env file
    ```
 
-### Tesseract 바이너리 설치 (폴백 사용 시)
+### Install Tesseract Binary (If using fallback)
 
-| OS | 명령어 |
-|----|--------|
+| OS | Command |
+|----|---------|
 | macOS | `brew install tesseract tesseract-lang` |
 | Ubuntu/Debian | `sudo apt install tesseract-ocr tesseract-ocr-kor` |
-| Windows | [UB-Mannheim 설치 프로그램](https://github.com/UB-Mannheim/tesseract/wiki) 다운로드 후 PATH에 추가 |
+| Windows | Download [UB-Mannheim Installer](https://github.com/UB-Mannheim/tesseract/wiki) and add to PATH |
 
-## 설정
+## Configuration
 
-`.env` 파일에 Google Cloud Service Account 키 파일 경로를 설정합니다:
+Set the path to your Google Cloud Service Account key file in the `.env` file:
 
 ```
 GOOGLE_APPLICATION_CREDENTIALS="/path/to/project/keys/service-account.json"
 ```
 
-- `GOOGLE_APPLICATION_CREDENTIALS`가 설정되어 있으면 Google Cloud Vision API를 사용합니다.
-- 설정되어 있지 않거나 키가 유효하지 않으면 자동으로 Tesseract 폴백으로 전환됩니다. (Tesseract 설치 필요)
+- If `GOOGLE_APPLICATION_CREDENTIALS` is set, Google Cloud Vision API is used.
+- If not set or the key is invalid, it automatically falls back to Tesseract (Tesseract installation required).
 
-## 사용법
+## Usage
 
-### MCP 서버 실행
+### Run MCP Server
 
 ```bash
 uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 ```
 
-### Claude Desktop에서 사용
+### Use in Claude Desktop
 
-`claude_desktop_config.json`에 다음을 추가합니다:
-> setup.py에 의해 자동으로 설정됩니다.
+Add the following to `claude_desktop_config.json`:
+> This is automatically configured by setup.py.
 
 ```json
 {
@@ -84,65 +84,65 @@ uv run fastmcp run src/handwriting_ocr_mcp/server.py:mcp
 }
 ```
 
-### 제공 도구
+### Available Tools
 
 #### `ocr_image`
 
-손글씨 이미지에서 텍스트를 추출합니다.
+Extracts text from a handwriting image.
 
-| 파라미터 | 타입 | 기본값 | 설명 |
-|---------|------|-------|------|
-| `image_path` | `str \| None` | `None` | OCR을 수행할 이미지 파일 경로 (image_data와 둘 중 하나 필수) |
-| `image_data` | `str \| None` | `None` | base64 인코딩된 이미지 데이터 (image_path와 둘 중 하나 필수) |
-| `lang` | `str` | `"ko"` | OCR 언어 코드 |
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `image_path` | `str \| None` | `None` | Path to the image file for OCR (Required if image_data is not provided) |
+| `image_data` | `str \| None` | `None` | Base64 encoded image data (Required if image_path is not provided) |
+| `lang` | `str` | `"en"` | OCR Language Code |
 
 #### `list_supported_languages`
 
-지원하는 OCR 언어 목록을 반환합니다. 파라미터 없음.
+Returns a list of supported OCR languages. No parameters.
 
-### 사용 예시
+### Usage Examples
 
-#### 파일 경로로 호출
+#### Call with File Path
 
 ```python
-# MCP 클라이언트에서
-result = ocr_image(image_path="/path/to/business_card.jpg", lang="ko")
+# In MCP Client
+result = ocr_image(image_path="/path/to/business_card.jpg", lang="en")
 ```
 
-#### Claude Desktop에서 사용
+#### Use in Claude Desktop
 
-Claude Desktop에서 이미지를 업로드한 경우:
-1. **권장**: 이미지를 로컬에 저장 후 절대 경로를 MCP 도구에 전달
-2. **대안**: Claude가 이미지를 base64로 인코딩하여 전달 (토큰 소모 주의)
+When uploading an image in Claude Desktop:
+1. **Recommended**: Save the image locally and provide the absolute path to the MCP tool.
+2. **Alternative**: Claude encodes the image to base64 and passes it (Note: token consumption).
 
-**중요**: MCP 서버는 Claude가 업로드한 임시 파일에 직접 접근할 수 없습니다.
-파일을 특정 위치에 저장하고 그 경로를 제공해야 합니다.
+**Important**: The MCP server cannot directly access temporary files uploaded by Claude.
+You must save the file to a specific location and provide that path.
 
-### 지원 언어
+### Supported Languages
 
-| 코드 | 언어 |
-|------|------|
-| `ko` | 한국어 |
-| `en` | 영어 |
-| `ja` | 일본어 |
-| `zh` | 중국어 (간체) |
-| `zh-TW` | 중국어 (번체) |
-| `de` | 독일어 |
-| `fr` | 프랑스어 |
-| `es` | 스페인어 |
-| `it` | 이탈리아어 |
-| `pt` | 포르투갈어 |
-| `ru` | 러시아어 |
+| Code | Language |
+|------|----------|
+| `ko` | Korean |
+| `en` | English |
+| `ja` | Japanese |
+| `zh` | Chinese (Simplified) |
+| `zh-TW` | Chinese (Traditional) |
+| `de` | German |
+| `fr` | French |
+| `es` | Spanish |
+| `it` | Italian |
+| `pt` | Portuguese |
+| `ru` | Russian |
 
-## 개발
+## Development
 
 ```bash
-# 개발 의존성 포함 설치
+# Install with dev dependencies
 uv sync --extra dev --extra tesseract
 
-# 테스트 실행
+# Run tests
 uv run python -m pytest tests/
 
-# 린트
+# Lint
 uv run ruff check src/ tests/
 ```
