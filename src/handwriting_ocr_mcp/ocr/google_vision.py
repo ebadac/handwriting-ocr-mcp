@@ -10,13 +10,26 @@ class GoogleVisionEngine:
         "ko", "en", "ja", "zh", "zh-TW", "de", "fr", "es", "it", "pt", "ru",
     ]
 
+
     def __init__(self) -> None:
-        api_key = os.environ.get("GOOGLE_API_KEY")
-        if not api_key:
-            raise RuntimeError("GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.")
-        self._client = vision.ImageAnnotatorClient(
-            client_options={"api_key": api_key},
-        )
+        # Check for Service Account (preferred)
+        self._service_account_path = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+        self._api_key = os.environ.get("GOOGLE_API_KEY")
+
+        if self._service_account_path:
+             # Client library automatically uses GOOGLE_APPLICATION_CREDENTIALS if set
+            self._client = vision.ImageAnnotatorClient()
+        elif self._api_key:
+             # Fallback to API Key
+            self._client = vision.ImageAnnotatorClient(
+                client_options={"api_key": self._api_key},
+            )
+        else:
+            raise RuntimeError(
+                "Google Cloud Vision 인증 정보가 설정되지 않았습니다.\n"
+                "GOOGLE_APPLICATION_CREDENTIALS(서비스 계정 키 파일 경로) 또는 "
+                "GOOGLE_API_KEY 환경변수를 설정해주세요."
+            )
 
     def extract_text(
         self,

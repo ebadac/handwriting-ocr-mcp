@@ -1,10 +1,17 @@
 from __future__ import annotations
 
 import base64
+import os
 
+from dotenv import load_dotenv
 from fastmcp import FastMCP
 
 from handwriting_ocr_mcp.ocr.base import OcrEngine, create_engine
+
+# Load environment variables from .env file
+load_dotenv()
+
+
 
 mcp = FastMCP("handwriting-ocr-mcp")
 
@@ -18,7 +25,10 @@ def _get_engine() -> OcrEngine:
     return _engine
 
 
-@mcp.tool()
+@mcp.tool(
+    name="ocr_image",
+    description="Extracts text from a handwriting image file or base64 data. Supports multiple languages (default: Korean).",
+)
 def ocr_image(
     image_path: str | None = None,
     lang: str = "ko",
@@ -27,12 +37,15 @@ def ocr_image(
     """Extracts text from handwriting image.
 
     Args:
-        image_path: Image file path for OCR
-        lang: OCR language code (default: ko)
-        image_data: Base64 encoded image data (can be used instead of image_path)
+        image_path: Absolute path to the local image file to perform OCR on.
+        lang: Language code for OCR (e.g., 'ko' for Korean, 'en' for English). Defaults to 'ko'.
+        image_data: Base64 encoded string of the image data. Use this if the image is not stored locally.
 
     Returns:
-        Extracted text
+        The extracted text as a string.
+
+    Raises:
+        ValueError: If neither image_path nor image_data is provided.
     """
     engine = _get_engine()
     if image_data is not None:
@@ -48,8 +61,15 @@ def ocr_image(
     )
 
 
-@mcp.tool()
+@mcp.tool(
+    name="list_supported_languages",
+    description="Returns a list of supported language codes for the OCR tool.",
+)
 def list_supported_languages() -> list[str]:
-    """Returns list of supported OCR languages."""
+    """Returns list of supported OCR languages.
+
+    Returns:
+        A list of string language codes (e.g., ['ko', 'en', ...]) supported by the current OCR engine.
+    """
     engine = _get_engine()
     return engine.supported_languages()

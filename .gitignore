@@ -9,6 +9,7 @@ build/
 .env
 .env.local
 .env.*.local
+keys/
 
 # OS files
 .DS_Store
